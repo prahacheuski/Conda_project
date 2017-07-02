@@ -26,8 +26,7 @@ print("algebraic sum of counted array: {}\n".format(sum_array))
 
 
 def prod(arr1: list) -> int or float:
-    product = min(arr1) * max(arr1)
-    return product
+    return min(arr1) * max(arr1)
 
 
 array_1 = [x * x for x in range(1, 7)]
