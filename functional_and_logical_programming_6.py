@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from operator import itemgetter
 
 """
 lab #6 task#9
