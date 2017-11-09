@@ -34,7 +34,6 @@ def do_the_work() -> int:
             if df is not None:
                 np_df = df.as_matrix()
                 py_np_df = list(np_df)
-                print(py_np_df)
                 ind = 1
                 while ind < len(py_np_df):
                     for i in range(len(py_np_df) - ind):
