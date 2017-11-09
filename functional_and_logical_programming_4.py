@@ -1,8 +1,17 @@
 import numpy as np
 import pandas as pd
 
+"""
+lab #4 task#9
+Для каждого x, изменяющегося от a до b с шагом h, найти значения функции Y(x), суммы S(x) и |Y(x)–S(x)| и вывести в виде 
+таблицы. Значения a, b, h и n вводятся с клавиатуры. Так как значение S(x) является рядом разложения функции Y(x), 
+при правильном решении значения S и Y для заданного аргумента x (для тестовых значений исходных данных) должны совпадать 
+в целой части и в первых двух-четырех позициях после десятичной точки.
+Работу программы проверить для a = 0,1; b = 1,0; h = 0,1; значение параметра n выбрать в зависимости от задания.
+"""
 
-def do():
+
+def do_the_work() -> int:
     a: np.float = input('Insert start of the range (float, e.g. 0.1): ')
     a = np.float(a)
     b: np.float = input('Insert end of the range (float, e.g. 1.0): ')
@@ -24,6 +33,8 @@ def do():
     df = pd.DataFrame(arr, columns=['Y(x)', 'S(x, n)', '|Y(x) - S(x, n)|'], dtype=np.float64, index=np.arange(a, b, h))
     df.index.name = 'x'
     print(df)
+    z = input('\nPress any key ...')
+    return 0
 
 
 def s(x: np.float, step: np.int) -> float:
@@ -38,4 +49,4 @@ def y(x: np.float) -> float:
 
 
 if __name__ == '__main__':
-    do()
+    do_the_work()
