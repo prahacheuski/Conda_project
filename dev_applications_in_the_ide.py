@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+import re
+
 """
 lab #1 task #21
 Вывести на экран 1 или 0 в зависимости от того, есть ли среди первых трех цифр дробной части заданного положительного
@@ -32,7 +36,7 @@ lab #2 task #21
 собаки и свиньи. (1984 год- год зеленой крысы -был началом очередного цикла). Разработать программу, которая вводит 
 номер некоторого года нашей эры и выводит его название по старояпонскому календарю.
 """
-
+print('\n')
 
 class JapanCalendar(object):
     def __init__(self, fixed_date):
@@ -96,3 +100,44 @@ def sequence(sample: tuple) -> int:
 sequence(sample_1)
 sequence(sample_2)
 sequence(sample_3)
+
+"""
+Элементы массива Х циклически сдвинуть на k позиций влево.
+"""
+
+print('\n')
+def move_left(pos: int):
+    initial_array = [35, 74, 22, 13, 23, 98, 16, 15, 65, 55]
+
+    print('\nInitial array: {}\nMove pointer for {} position left\nResult array: {}'.format(initial_array, pos,
+                                                                                            initial_array[:10 - pos]))
+
+
+move_left(3)
+
+"""
+Дана строка символов S1 S2 …Sm, в которой могут встречаться цифры, пробелы, буква "Е" и знаки "+", "-". Известно, что 
+первый символ S1 является  цифрой. Из данной строки выделить подстроки, разделенные пробелами. Определить, является ли 
+первая подстрока числом. Если да, то выяснить: целое или вещественное число, положительное или отрицательное.
+"""
+
+
+def split_line(initial_str: str):
+    splitted_str = initial_str.split(' ')
+    print('\nInitial string: {}\nLine splitted by space: {}'.format(initial_str, splitted_str))
+    if re.match(re.compile(r'-?\d+'), splitted_str[0]):
+        print('First value is num: Yes')
+        if re.match(re.compile(r'-'), splitted_str[0]):
+            print('Value is negative')
+        else:
+            print('Value is positive')
+        if re.match(re.compile(r'.'), splitted_str[0]):
+            print('Value is double')
+        else:
+            print('Value is integer')
+
+    else:
+        print('First value is not num')
+
+
+split_line('-85.6 96.6 E 1 + 32.33 + -')
