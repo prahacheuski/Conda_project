@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # To view help run the application from command prompt without arguments (e.g. "python3.7 -m image_converter")
     if len(sys.argv) != 4:
         print(f"{'=' * 20} Image Converter {'=' * 20}\n"
-              f"Accept following positional argument: image_converter.py [uri] [mode] [input file path] "
+              f"Accept following positional argument: image_converter.py [mode] [input file path] "
               f"[output file path]\nGot: {'Nothing' if not sys.argv[1:4] else sys.argv[1:]}\n{'-' * 30}\n"
               f"Run from command prompt examples:\npython3.7 -m image_converter from_picture ~/Downloads/"
               f"test_image.jpg ~/Downloads/image_matrix.txt\npython3.7 -m image_converter from_text "
