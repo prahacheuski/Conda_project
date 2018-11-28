@@ -1,9 +1,8 @@
-import os
-import sys
-import numpy as np
-import datetime
-import pandas as pd
 from lxml import etree
+import pandas as pd
+import datetime
+import sys
+import os
 import re
 
 
