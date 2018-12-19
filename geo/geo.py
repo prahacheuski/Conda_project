@@ -27,11 +27,11 @@ class Geo(object):
         self.__methods_confidence_map: Optional[Dict[str, float]] = methods_confidence_map
         self.__rel_tol: float = rel_tol
 
-    def __parse_wtk(self, in_str: str) -> Dict[str, str]:
+    def __parse_wtk(self, in_str: str) -> Optional[Dict[str, str]]:
         """
-        TODO: Write comment
-        :param in_str:
-        :return:
+        Parse input string using 'self.__wkt_pattern' and return dict with results.
+        :param in_str: input string for parsing.
+        :return: dict if parsing results is not null, else return 'None'
         """
         search_result = self.__wkt_pattern.search(in_str)
         result = search_result.groupdict() if search_result else None
@@ -62,10 +62,10 @@ class Geo(object):
 
     def __get_osm(self, address: str, query_result) -> Optional[Point]:
         """
-        TODO: Write comment
-        :param address:
-        :param query_result:
-        :return:
+        Parse 'osm' block and return processed data.
+        :param address: single 'address' string.
+        :param query_result: result of a work of any method from 'geocode' module.
+        :return: 'Point' object.
         """
         result = None
 
@@ -85,10 +85,12 @@ class Geo(object):
 
     def __get_lat_and_lng(self, address: str, query_result) -> Optional[Point]:
         """
-        TODO: Write comment
-        :param address:
-        :param query_result:
-        :return:
+        Get two attributes ('wkt' and 'osm') from 'query_result', compare 'wkt.x' with 'osm.x', the same for 'y' and
+        return any appropriated value. If values are different with given tolerance(self.__rel_tol), the ValueError
+        will be raised.
+        :param address: single 'address' string.
+        :param query_result: result of a work of any method from 'geocode' module.
+        :return: 'Point' object.
         """
         wkt = self.__get_wkt(address, query_result)
         osm = self.__get_osm(address, query_result)
@@ -108,11 +110,13 @@ class Geo(object):
     def get_coordinates(self, address: Union[str, Iterable[str]], method_name: str,
                         leave_null_values: bool = False) -> Optional[Union[Point, List[Point]]]:
         """
-        TODO: Write comment
-        :param address:
-        :param method_name:
-        :param leave_null_values:
-        :return:
+        Return coordinates Point('address', 'x', 'y') for each given address.
+        :param address: single 'address' string or list of 'address' strings
+        :param method_name: single 'method name' string.
+        :param leave_null_values: if for any address from given sequence of addresses, coordinates didn't detected,
+                                  it will be interpret as 'None' object. By default, that argument set to False and
+                                  all such occurrences will be removed. To save 'None' values, set True.
+        :return: return single 'Point' value or list of 'Point' objects.
         """
         result: list = []
         method = getattr(geocoder, method_name)
@@ -123,7 +127,7 @@ class Geo(object):
                     res = method(address, session=session)
 
                 except Exception:
-                    pass  # Place to add logging
+                    warnings.warn(f"Could not get any data via method '{method_name}'.", Warning)
 
                 else:
                     result.append(self.__get_lat_and_lng(address, res))
@@ -134,7 +138,7 @@ class Geo(object):
                         res = method(addr, session=session)
 
                     except Exception:
-                        pass  # Place to add logging
+                        warnings.warn(f"Could not get any data via method '{method_name}'.", Warning)
 
                     else:
                         result.append(self.__get_lat_and_lng(addr, res))
@@ -148,16 +152,19 @@ class Geo(object):
                                         method_name_vec: Optional[Union[str, Iterable[str]]] = None) \
             -> Optional[pd.DataFrame]:
         """
-        TODO: Write comment
-        :param address:
-        :param method_name_vec:
-        :return:
+        Return coordinates [x, y] for each address and for each given 'method'.
+        :param address: single 'address' string or list of 'address' strings.
+        :param method_name_vec: single 'method name' string or any iterable of 'method name' strings.
+                                If not specified, will be used all methods from 'methods_confidence_map'.
+        :return: concatenated DataFrame with indices from 'method_name_vec' and columns as 'address' values.
+                 Also drop all rows that contains only null values.
         """
         assert self.__methods_confidence_map is not None, 'Constructor argument "methods_confidence_map" is required'
 
+        result = None
         df_vec: list = []
 
-        for method_name in method_name_vec:
+        for method_name in method_name_vec if method_name_vec else self.__methods_confidence_map.keys():
             if method_name not in self.__methods_confidence_map:
                 warnings.warn(f'Method "{method_name}" not found in "methods_confidence_map".', Warning)
 
@@ -168,10 +175,11 @@ class Geo(object):
                     data_: dict = {k: [[v.x, v.y] if v else None] for k, v in zip(address, current_res)}
                     df_vec.append(pd.DataFrame(data=data_, index=[method_name], columns=address))
 
-        result_df: pd.DataFrame = pd.concat(df_vec)
-        result_df.dropna(how='all', inplace=True)
+        if df_vec:
+            result: pd.DataFrame = pd.concat(df_vec)
+            result.dropna(how='all', inplace=True)
 
-        return result_df
+        return result
 
 
 if __name__ == '__main__':
@@ -185,8 +193,8 @@ if __name__ == '__main__':
     geo = Geo(methods_degree_of_confidence_map)
     coordinates = geo.get_coordinates(['Minsk', 'Moscow', 'Bangui', '453 Booth Street, Ottawa ON'],
                                       method_name='yandex')
-    coordinates_df = geo.get_multiple_method_coordinates(['Minsk', 'Moscow', 'Bangui', '453 Booth Street, Ottawa ON'],
-                                                         method_name_vec=('yandex', 'google'))
+    # TODO: Implement multi threading solution
+    coordinates_df = geo.get_multiple_method_coordinates(['Minsk', 'Moscow', 'Bangui', '453 Booth Street, Ottawa ON'])
     pprint(coordinates)
     print(f'\n{"=" * 30}\n')
     print(coordinates_df)
