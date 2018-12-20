@@ -1,7 +1,6 @@
-from typing import Union, Dict, Optional, Iterable, List
+from typing import Union, Dict, Optional, Iterable, List, Tuple
 from collections import namedtuple
 from cmath import isclose
-from pprint import pprint
 import pandas as pd
 import warnings
 import requests
@@ -10,21 +9,26 @@ import re
 
 
 class Geo(object):
-    __slots__ = '__methods_confidence_map', '__rel_tol'
+    __slots__ = '__allowed_methods', '__rel_tol'
     __wkt_pattern: re.compile = re.compile(r'^POINT\((?P<x>\S+)\s+(?P<y>\S+)\)$')
     Point: namedtuple = namedtuple('Point', ('address', 'x', 'y'))  # mapping between address and coordinates
 
-    def __init__(self, methods_confidence_map: Optional[Dict[str, float]] = None, rel_tol: float = 1e-09) -> None:
+    def __init__(self, allowed_methods: Tuple[str] = ('arcgis', 'baidu', 'bing', 'gaode', 'geocodefarm', 'geolytica',
+                                                      'geonames', 'ottawa', 'google', 'here', 'locationiq', 'mapbox',
+                                                      'mapquest', 'opencage', 'osm', 'tamu', 'tomtom', 'w3w', 'yahoo',
+                                                      'yandex', 'tgos'), rel_tol: float = 1e-09) -> None:
         """
-        TODO: Write comment
-        :param methods_confidence_map:
+        Configure 2 parameters 'allowed_methods' and 'tolerance',
+        for basic usage don't pass any argument to the constructor.
+        :param allowed_methods: tuple with all allowed methods.
+                                Affected only on 'get_multiple_method_coordinates' method.
         :param rel_tol: is the relative tolerance – it is the maximum allowed difference between 'x' and 'y'
                         coordinates points of two sources 'wkt' and 'osm', relative to the larger absolute value
                         of 'a' or 'b'. For example, to set a tolerance of 5%, pass rel_tol=0.05.
                         The default tolerance is 1e-09, which assures that the two values are
                         the same within about 9 decimal digits. rel_tol must be greater than zero.
         """
-        self.__methods_confidence_map: Optional[Dict[str, float]] = methods_confidence_map
+        self.__allowed_methods: Tuple[str] = allowed_methods
         self.__rel_tol: float = rel_tol
 
     def __parse_wtk(self, in_str: str) -> Optional[Dict[str, str]]:
@@ -39,10 +43,10 @@ class Geo(object):
 
     def __get_wkt(self, address: str, query_result) -> Optional[Point]:
         """
-        TODO: Write comment
-        :param address:
-        :param query_result:
-        :return:
+        Parse 'wkt' block and return processed data.
+        :param address: single 'address' string.
+        :param query_result: result of a work of any method from 'geocode' module.
+        :return: 'Point' object.
         """
         result = None
 
@@ -159,13 +163,11 @@ class Geo(object):
         :return: concatenated DataFrame with indices from 'method_name_vec' and columns as 'address' values.
                  Also drop all rows that contains only null values.
         """
-        assert self.__methods_confidence_map is not None, 'Constructor argument "methods_confidence_map" is required'
-
         result = None
         df_vec: list = []
 
-        for method_name in method_name_vec if method_name_vec else self.__methods_confidence_map.keys():
-            if method_name not in self.__methods_confidence_map:
+        for method_name in method_name_vec if method_name_vec else self.__allowed_methods:
+            if method_name not in self.__allowed_methods:
                 warnings.warn(f'Method "{method_name}" not found in "methods_confidence_map".', Warning)
 
             else:
@@ -180,21 +182,3 @@ class Geo(object):
             result.dropna(how='all', inplace=True)
 
         return result
-
-
-if __name__ == '__main__':
-    methods_degree_of_confidence_map: Dict[str, float] = {'arcgis': 0.5, 'baidu': 0.5, 'bing': 0.8, 'gaode': 0.5,
-                                                          'geocodefarm': 0.5, 'geolytica': 0.5, 'geonames': 0.5,
-                                                          'ottawa': 0.5, 'google': 0.95, 'here': 0.5, 'locationiq': 0.5,
-                                                          'mapbox': 0.7, 'mapquest': 0.5, 'opencage': 0.5, 'osm': 0.5,
-                                                          'tamu': 0.5, 'tomtom': 0.7, 'w3w': 0.5, 'yahoo': 0.8,
-                                                          'yandex': 0.8, 'tgos': 0.5}
-
-    geo = Geo(methods_degree_of_confidence_map)
-    coordinates = geo.get_coordinates(['Minsk', 'Moscow', 'Bangui', '453 Booth Street, Ottawa ON'],
-                                      method_name='yandex')
-    # TODO: Implement multi threading solution
-    coordinates_df = geo.get_multiple_method_coordinates(['Minsk', 'Moscow', 'Bangui', '453 Booth Street, Ottawa ON'])
-    pprint(coordinates)
-    print(f'\n{"=" * 30}\n')
-    print(coordinates_df)
