@@ -111,7 +111,7 @@ class Geo(object):
 
         return result
 
-    def get_coordinates(self, address: Union[str, Iterable[str]], method_name: str,
+    def get_coordinates(self, address: Union[str, List[str]], method_name: str,
                         leave_null_values: bool = False) -> Optional[Union[Point, List[Point]]]:
         """
         Return coordinates Point('address', 'x', 'y') for each given address.
